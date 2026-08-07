@@ -1,0 +1,85 @@
+{
+    "metadata": {
+        "lastSync": "2026-08-06T19:30:00.000Z",
+        "totalRecords": 3
+    },
+    "tickets": [
+        {
+            "id": 1001,
+            "subject": "Solicitação de Pagamento - Fornecedor X",
+            "status": 2,
+            "priority": 2,
+            "source": 2,
+            "requester_email": "joao.silva@empresa.com",
+            "requester_name": "João Silva",
+            "empreendimento": "Residencial Alphaville",
+            "valor": 15000.50,
+            "tempo_gasto": 0.5,
+            "tem_documento": "Sim",
+            "attachments": [
+                {
+                    "name": "Nota_Fiscal_123.pdf",
+                    "url": "#"
+                },
+                {
+                    "name": "Boleto.pdf",
+                    "url": "#"
+                }
+            ],
+            "banco": "Banco do Brasil",
+            "agencia": "1234",
+            "conta": "56789-0",
+            "tipo_pagamento": "BOLETO",
+            "contrato_medicao": "Medição 04",
+            "agente": "Maria Souza",
+            "created_at": "2026-08-01T10:00:00Z"
+        },
+        {
+            "id": 1002,
+            "subject": "Solicitação de Pagamento Especial - Serviços de TI",
+            "status": 4,
+            "priority": 3,
+            "source": 1,
+            "requester_email": "ana.costa@empresa.com",
+            "requester_name": "Ana Costa",
+            "empreendimento": "Corporate Tower",
+            "valor": 5500.00,
+            "tempo_gasto": 1.2,
+            "tem_documento": "Sim",
+            "attachments": [
+                {
+                    "name": "Recibo.pdf",
+                    "url": "#"
+                }
+            ],
+            "banco": "Itaú",
+            "agencia": "9999",
+            "conta": "11111-1",
+            "tipo_pagamento": "PIX",
+            "contrato_medicao": "-",
+            "agente": "Carlos Lima",
+            "created_at": "2026-08-05T14:30:00Z"
+        },
+        {
+            "id": 1003,
+            "subject": "Solicitação de Pagamento - Materiais",
+            "status": 3,
+            "priority": 1,
+            "source": 2,
+            "requester_email": "pedro.santos@empresa.com",
+            "requester_name": "Pedro Santos",
+            "empreendimento": "Condomínio das Flores",
+            "valor": 3200.75,
+            "tempo_gasto": 0.2,
+            "tem_documento": "Não",
+            "attachments": [],
+            "banco": "Bradesco",
+            "agencia": "4321",
+            "conta": "87654-3",
+            "tipo_pagamento": "TED",
+            "contrato_medicao": "-",
+            "agente": "Não Atribuído",
+            "created_at": "2026-08-06T09:15:00Z"
+        }
+    ]
+}
