@@ -236,7 +236,7 @@ function renderTable(data) {
             <td>${getSourceName(ticket.source)}</td>
             <td><div class="truncate" title="${escapeHtml(ticket.requester_email)}">${escapeHtml(ticket.requester_email)}</div></td>
             <td><div class="truncate" title="${escapeHtml(ticket.requester_name)}">${escapeHtml(ticket.requester_name)}</div></td>
-            <td><div class="truncate" title="${escapeHtml(ticket.empreendimento)}">${escapeHtml(ticket.empreendimento)}</div></td>
+            <td style="white-space:normal; word-break:break-word; min-width:150px;">${escapeHtml(ticket.empreendimento)}</td>
             <td style="font-weight:600;">${formatCurrency(ticket.valor)}</td>
             <td>${ticket.tempo_gasto}h</td>
             <td>${renderDocBadge(ticket.tem_documento)}</td>
