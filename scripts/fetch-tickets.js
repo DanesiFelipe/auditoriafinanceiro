@@ -40,54 +40,69 @@ function log(msg) { console.log(msg); }
 function warn(msg) { console.warn('⚠️  ' + msg); }
 function err(msg)  { console.error('❌ ' + msg); }
 
-// ─── HTTP HELPER ─────────────────────────────────────────────────────────────
-function get(apiPath) {
-    return new Promise((resolve, reject) => {
-        const options = {
-            hostname: DOMAIN,
-            port: 443,
-            path: apiPath,
-            method: 'GET',
-            headers: {
-                'Authorization': AUTH,
-                'Content-Type': 'application/json'
-            }
-        };
-
-        const req = https.request(options, res => {
-            let body = '';
-            res.on('data', chunk => body += chunk);
-            res.on('end', () => {
-                log(`  [HTTP ${res.statusCode}] ${apiPath.split('?')[0]}`);
-
-                if (res.statusCode === 429) {
-                    return reject(new Error('RATE_LIMIT: Aguarde e tente novamente.'));
-                }
-                if (res.statusCode === 401 || res.statusCode === 403) {
-                    return reject(new Error(`AUTH_ERROR (${res.statusCode}): API Key inválida ou sem permissão. Verifique a secret FRESHSERVICE_API_KEY.`));
-                }
-                if (res.statusCode === 404) {
-                    return resolve(null); // 404 = recurso não existe, retorna null graciosamente
-                }
-                if (res.statusCode < 200 || res.statusCode >= 300) {
-                    return reject(new Error(`HTTP ${res.statusCode}: ${body.substring(0, 300)}`));
-                }
-
-                try {
-                    resolve(JSON.parse(body));
-                } catch (e) {
-                    reject(new Error(`JSON parse error: ${e.message} | body: ${body.substring(0, 100)}`));
-                }
-            });
-        });
-
-        req.on('error', e => reject(new Error(`Network error: ${e.message}`)));
-        req.setTimeout(30000, () => { req.destroy(); reject(new Error('Timeout (30s)')); });
-        req.end();
-    });
-}
-
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ─── HTTP HELPER COM RETRY AUTOMÁTICO ─────────────────────────────────────────
+async function get(apiPath, retries = 5) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            return await new Promise((resolve, reject) => {
+                const options = {
+                    hostname: DOMAIN,
+                    port: 443,
+                    path: apiPath,
+                    method: 'GET',
+                    headers: {
+                        'Authorization': AUTH,
+                        'Content-Type': 'application/json'
+                    }
+                };
+
+                const req = https.request(options, res => {
+                    let body = '';
+                    res.on('data', chunk => body += chunk);
+                    res.on('end', () => {
+                        if (res.statusCode === 429) {
+                            const retryAfter = res.headers['retry-after'] ? parseInt(res.headers['retry-after'], 10) * 1000 : 60000;
+                            return reject({ isRateLimit: true, retryAfter });
+                        }
+
+                        log(`  [HTTP ${res.statusCode}] ${apiPath.split('?')[0]}`);
+
+                        if (res.statusCode === 401 || res.statusCode === 403) {
+                            return reject(new Error(`AUTH_ERROR (${res.statusCode}): API Key inválida ou sem permissão.`));
+                        }
+                        if (res.statusCode === 404) {
+                            return resolve(null); // 404 = recurso não existe, retorna null
+                        }
+                        if (res.statusCode < 200 || res.statusCode >= 300) {
+                            return reject(new Error(`HTTP ${res.statusCode}: ${body.substring(0, 300)}`));
+                        }
+
+                        try {
+                            resolve(JSON.parse(body));
+                        } catch (e) {
+                            reject(new Error(`JSON parse error: ${e.message} | body: ${body.substring(0, 100)}`));
+                        }
+                    });
+                });
+
+                req.on('error', e => reject(new Error(`Network error: ${e.message}`)));
+                req.setTimeout(30000, () => { req.destroy(); reject(new Error('Timeout (30s)')); });
+                req.end();
+            });
+        } catch (e) {
+            if (e.isRateLimit) {
+                log(`  [HTTP 429] Rate Limit atingido! Aguardando ${e.retryAfter / 1000}s antes de tentar novamente...`);
+                await sleep(e.retryAfter);
+                continue;
+            }
+            if (i === retries - 1) throw e;
+            log(`  [Erro] Falha ao acessar API: ${e.message}. Retentando em 5s...`);
+            await sleep(5000);
+        }
+    }
+}
 
 // ─── BUSCAR UMA PÁGINA DE TICKETS ────────────────────────────────────────────
 async function fetchTicketsPage(currentUpdatedSince, page) {
