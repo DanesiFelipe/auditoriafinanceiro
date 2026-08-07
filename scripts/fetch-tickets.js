@@ -91,9 +91,9 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // ─── BUSCAR UMA PÁGINA DE TICKETS ────────────────────────────────────────────
 async function fetchTicketsPage(page) {
-    // Busca TODOS os tickets do workspace, ordenados por ID decrescente
-    // Não filtramos por tipo aqui para não perder nada — filtramos depois
-    const path = `/api/v2/tickets?workspace_id=${WORKSPACE_ID}&per_page=100&page=${page}&order_by=created_at&order_type=desc&include=requester`;
+    // Usamos updated_since para destravar o limite de paginação (permite até 300 páginas em vez de 30)
+    // Filtramos desde Jan/2025 para garantir que pegaremos todo o histórico necessário
+    const path = `/api/v2/tickets?workspace_id=${WORKSPACE_ID}&updated_since=2025-01-01T00:00:00Z&per_page=100&page=${page}&order_by=created_at&order_type=desc&include=requester`;
     const data = await get(path);
     return data ? (data.tickets || []) : [];
 }
@@ -144,7 +144,7 @@ async function main() {
 
     const allTickets = [];
     let page = 1;
-    const MAX_PAGES = 30; // Freshservice v2 limita a 30 páginas (3000 tickets)
+    const MAX_PAGES = 300; // Com updated_since, o limite sobe para 300 páginas (30.000 tickets)
 
     while (page <= MAX_PAGES) {
         log(`  Página ${page}...`);
