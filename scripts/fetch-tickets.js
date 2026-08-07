@@ -120,6 +120,28 @@ async function fetchAgents() {
     return map;
 }
 
+// ─── BUSCAR EMPREENDIMENTOS (CUSTOM OBJECT) ──────────────────────────────────
+async function fetchEmpreendimentos() {
+    const map = {};
+    let page = 1;
+    while (true) {
+        const data = await get(`/api/v2/objects/24000020096/records?per_page=100&page=${page}`);
+        const records = data ? (data.records || []) : [];
+        if (!records.length) break;
+
+        records.forEach(r => {
+            if (r.data && r.data.bo_display_id) {
+                map[r.data.bo_display_id] = r.data.empreendimentos || r.data.name || `Empreendimento ${r.data.bo_display_id}`;
+            }
+        });
+
+        if (records.length < 100) break;
+        page++;
+    }
+    log(`  → ${Object.keys(map).length} empreendimentos carregados.\n`);
+    return map;
+}
+
 // ─── EXTRAIR CAMPO CUSTOM ────────────────────────────────────────────────────
 function cf(obj, ...keys) {
     if (!obj) return '-';
@@ -133,9 +155,10 @@ function cf(obj, ...keys) {
 
 // ─── MAIN ────────────────────────────────────────────────────────────────────
 async function main() {
-    // 1. Agentes
-    log('[ 1/3 ] Carregando agentes...');
+    // 1. Agentes e Empreendimentos
+    log('[ 1/3 ] Carregando dados auxiliares (Agentes e Empreendimentos)...');
     const agents = await fetchAgents();
+    const empreendimentosMap = await fetchEmpreendimentos();
 
     // 2. Buscar todos os tickets paginando
     log('[ 2/3 ] Buscando tickets do Freshservice...\n');
@@ -249,6 +272,12 @@ async function main() {
 
         const hasAttachment = Array.isArray(t.attachments) && t.attachments.length > 0;
 
+        // Extrai o ID do empreendimento e converte para o nome
+        const rawEmpreendimento = cf(formData, 'empresa_empreendimento', 'empreendimento', 'empresa');
+        const empName = rawEmpreendimento !== '-' && empreendimentosMap[rawEmpreendimento] 
+            ? empreendimentosMap[rawEmpreendimento] 
+            : rawEmpreendimento;
+
         result.push({
             id:               t.id,                          // ← ID REAL do Freshservice
             subject:          t.subject || `Ticket #${t.id}`,
@@ -260,7 +289,7 @@ async function main() {
             requester_name:   t.requester?.name   || '-',
 
             // Campos do formulário — ajuste as chaves conforme o seu catálogo
-            empreendimento:   cf(formData, 'empresa_empreendimento', 'empreendimento', 'empresa'),
+            empreendimento:   empName,
             valor:            cf(formData, 'valor', 'value', 'montante') === '-'
                                 ? 0
                                 : parseFloat(String(cf(formData, 'valor', 'value', 'montante')).replace(',', '.')) || 0,
