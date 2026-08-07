@@ -703,6 +703,37 @@ function renderConversations(conversations) {
 
         const bubbleClass = isNote ? 'conv-body note-body' : 'conv-body';
 
+        // Tratar anexos da conversa/nota
+        let attachmentsHtml = '';
+        if (conv.attachments && conv.attachments.length > 0) {
+            attachmentsHtml = '<div class="conv-attachments" style="margin-top: 10px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px; display: flex; flex-direction: column; gap: 8px;">';
+            conv.attachments.forEach(att => {
+                const url = att.attachment_url || att.url || '#';
+                const name = att.name || 'Anexo';
+                const ext = name.split('.').pop().toLowerCase();
+                const isImage = ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext);
+
+                if (isImage) {
+                    attachmentsHtml += `
+                        <div class="conv-attachment-item">
+                            <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">
+                                <img src="${escapeHtml(url)}" alt="${escapeHtml(name)}" style="max-width: 100%; max-height: 250px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1);">
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    attachmentsHtml += `
+                        <div class="conv-attachment-item">
+                            <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.8rem; font-weight: 600; color: var(--trinus-blue); text-decoration: none;">
+                                <i class="ph ph-file-arrow-down" style="font-size: 1.2rem;"></i> ${escapeHtml(name)}
+                            </a>
+                        </div>
+                    `;
+                }
+            });
+            attachmentsHtml += '</div>';
+        }
+
         return `
             <div class="conversation-item" style="animation-delay: ${i * 0.05}s;">
                 <div class="conv-avatar ${avatarClass}">${initials}</div>
@@ -713,6 +744,7 @@ function renderConversations(conversations) {
                         <span class="conv-date">${formatDate(conv.created_at)}</span>
                     </div>
                     <div class="${bubbleClass}">${escapeHtml(bodyContent)}</div>
+                    ${attachmentsHtml}
                 </div>
             </div>
         `;
