@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditoria Financeira - Freshservice</title>
+    <title>Trinus Audit — Backoffice Financeiro</title>
+    <meta name="description" content="Painel de auditoria financeira do Backoffice Trinus — Solicitações de Pagamento">
     <link rel="stylesheet" href="style.css">
-    <!-- Google Fonts -->
+    <!-- Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- SheetJS for Excel export -->
@@ -16,27 +17,40 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Sidebar -->
+
+        <!-- ========================
+             SIDEBAR
+             ======================== -->
         <aside class="sidebar">
             <div class="logo-area">
-                <i class="ph ph-currency-dollar"></i>
-                <h2>FinAudit</h2>
+                <div class="logo-icon">↗</div>
+                <div class="logo-text">
+                    <h2>Trinus Audit</h2>
+                    <span>Backoffice Financeiro</span>
+                </div>
             </div>
-            
+
             <nav class="nav-menu">
-                <a href="#" class="nav-item active">
-                    <i class="ph ph-table"></i>
+                <span class="nav-label">Visualização</span>
+                <a href="#" class="nav-item active" id="nav-auditoria">
+                    <i class="ph ph-clipboard-text"></i>
                     <span>Auditoria</span>
                 </a>
+
+                <div class="nav-divider"></div>
+                <span class="nav-label">Exportar</span>
                 <a href="#" class="nav-item" id="btn-export-csv">
                     <i class="ph ph-file-csv"></i>
                     <span>Exportar CSV</span>
                 </a>
                 <a href="#" class="nav-item" id="btn-export-excel">
-                    <i class="ph ph-file-xls"></i>
+                    <i class="ph ph-microsoft-excel-logo"></i>
                     <span>Exportar Excel</span>
                 </a>
-                <a href="#" class="nav-item" id="btn-refresh" title="Recarregar dados">
+
+                <div class="nav-divider"></div>
+                <span class="nav-label">Dados</span>
+                <a href="#" class="nav-item" id="btn-refresh">
                     <i class="ph ph-arrows-clockwise"></i>
                     <span>Atualizar View</span>
                 </a>
@@ -44,20 +58,30 @@
 
             <div class="sidebar-footer">
                 <div class="last-sync">
-                    <span class="label">Última Sincronização:</span>
+                    <span class="label">Última sincronização</span>
                     <span id="sync-time" class="value">Carregando...</span>
                 </div>
+                <button id="btn-config" class="btn-config">
+                    <i class="ph ph-gear"></i>
+                    Configurar API
+                </button>
             </div>
         </aside>
 
-        <!-- Main Content -->
+        <!-- ========================
+             MAIN CONTENT
+             ======================== -->
         <main class="main-content">
+            <!-- Topbar -->
             <header class="topbar">
                 <div class="title-section">
-                    <h1>Painel de Auditoria</h1>
-                    <p>Backoffice Financeiro - Solicitações de Pagamento</p>
+                    <h1>
+                        Painel de Auditoria
+                        <span class="title-badge"><i class="ph ph-calendar"></i> 2025</span>
+                    </h1>
+                    <p>Solicitações de Pagamento · Workspace Backoffice Financeiro</p>
                 </div>
-                
+
                 <div class="actions-section">
                     <div class="search-bar">
                         <i class="ph ph-magnifying-glass"></i>
@@ -66,31 +90,54 @@
                 </div>
             </header>
 
-            <!-- Filters Section -->
+            <!-- Filters Panel -->
             <section class="filters-panel">
                 <div class="filter-group">
                     <label for="filter-status">Status</label>
                     <select id="filter-status">
                         <option value="">Todos</option>
-                        <option value="2">Aberto (2)</option>
-                        <option value="3">Pendente (3)</option>
-                        <option value="4">Resolvido (4)</option>
-                        <option value="5">Fechado (5)</option>
+                        <option value="2">Aberto</option>
+                        <option value="3">Pendente</option>
+                        <option value="4">Resolvido</option>
+                        <option value="5">Fechado</option>
                     </select>
                 </div>
+
                 <div class="filter-group">
                     <label for="filter-tipo-pagamento">Tipo Pgto</label>
                     <select id="filter-tipo-pagamento">
                         <option value="">Todos</option>
                         <option value="TED">TED</option>
-                        <option value="BOLETO">BOLETO</option>
+                        <option value="BOLETO">Boleto</option>
                         <option value="PIX">PIX</option>
                     </select>
                 </div>
+
+                <div class="filter-group">
+                    <label for="filter-prioridade">Prioridade</label>
+                    <select id="filter-prioridade">
+                        <option value="">Todas</option>
+                        <option value="1">Baixa</option>
+                        <option value="2">Média</option>
+                        <option value="3">Alta</option>
+                        <option value="4">Urgente</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="filter-documento">Possui Documento</label>
+                    <select id="filter-documento">
+                        <option value="">Todos</option>
+                        <option value="Sim">Com documento</option>
+                        <option value="Não">Sem documento</option>
+                    </select>
+                </div>
+
                 <div class="filter-group">
                     <label for="filter-empreendimento">Empreendimento</label>
-                    <input type="text" id="filter-empreendimento" placeholder="Filtrar empresa...">
+                    <input type="text" id="filter-empreendimento" placeholder="Filtrar...">
                 </div>
+
                 <div class="filter-group date-filter">
                     <label>Data de Criação</label>
                     <div class="date-inputs">
@@ -99,8 +146,9 @@
                         <input type="date" id="filter-date-end" title="Data Final">
                     </div>
                 </div>
-                <button id="btn-clear-filters" class="btn btn-secondary">
-                    <i class="ph ph-x"></i> Limpar Filtros
+
+                <button id="btn-clear-filters" class="btn btn-ghost">
+                    <i class="ph ph-x"></i> Limpar
                 </button>
             </section>
 
@@ -110,7 +158,7 @@
                     <i class="ph ph-spinner-gap ph-spin"></i>
                     <p>Carregando dados...</p>
                 </div>
-                
+
                 <div class="table-wrapper">
                     <table id="audit-table">
                         <thead>
@@ -137,11 +185,11 @@
                             </tr>
                         </thead>
                         <tbody id="audit-tbody">
-                            <!-- Rows will be injected here via JS -->
+                            <!-- Rows injected via JS -->
                         </tbody>
                     </table>
                 </div>
-                
+
                 <div class="table-footer">
                     <span id="record-count">0 registros encontrados</span>
                 </div>
@@ -149,21 +197,77 @@
         </main>
     </div>
 
-    <!-- Details Modal -->
-    <div id="details-modal" class="modal-overlay">
+    <!-- ========================
+         MODAL — DETALHES DO TICKET
+         ======================== -->
+    <div id="details-modal" class="modal-overlay" role="dialog" aria-modal="true">
         <div class="modal-content">
             <header class="modal-header">
                 <h2 id="modal-title">Detalhes do Ticket #ID</h2>
-                <button id="btn-close-modal" class="btn-icon"><i class="ph ph-x"></i></button>
+                <div class="modal-header-actions">
+                    <a href="#" id="modal-ticket-link" target="_blank" class="btn btn-primary" rel="noopener noreferrer">
+                        <i class="ph ph-arrow-square-out"></i> Abrir no Freshservice
+                    </a>
+                    <button id="btn-close-modal" class="btn-icon" aria-label="Fechar modal">
+                        <i class="ph ph-x"></i>
+                    </button>
+                </div>
             </header>
+
             <div class="modal-body" id="modal-body">
-                <!-- Content injected via JS -->
+                <!-- Details section -->
+                <div class="modal-details-section" id="modal-details">
+                    <!-- Injected via JS -->
+                </div>
+
+                <!-- Conversations section -->
+                <div class="modal-conversations-section" id="modal-conversations">
+                    <div class="section-header">
+                        <i class="ph ph-chat-dots" style="color: var(--trinus-blue); font-size: 1rem;"></i>
+                        <h3>Conversas e Notas Públicas</h3>
+                        <span class="count-badge" id="conv-count">—</span>
+                    </div>
+                    <div id="conversations-list" class="conversations-list">
+                        <div class="conv-loading">
+                            <i class="ph ph-spinner-gap ph-spin"></i>
+                            Carregando conversas...
+                        </div>
+                    </div>
+                </div>
             </div>
-            <footer class="modal-footer">
-                <a href="#" id="modal-ticket-link" target="_blank" class="btn btn-primary">
-                    <i class="ph ph-arrow-square-out"></i> Abrir no Freshservice
-                </a>
+
+            <footer class="modal-footer" id="modal-footer">
+                <!-- Footer populated via JS if needed -->
             </footer>
+        </div>
+    </div>
+
+    <!-- ========================
+         MODAL — CONFIGURAÇÃO DE API
+         ======================== -->
+    <div id="config-modal" class="config-modal-overlay" role="dialog" aria-modal="true">
+        <div class="config-modal">
+            <h3><i class="ph ph-gear" style="margin-right:6px; color: var(--trinus-horizon);"></i>Configuração da API</h3>
+            <p>Para exibir conversas em tempo real, informe sua chave de API do Freshservice. Ela é salva apenas localmente no seu navegador (localStorage).</p>
+
+            <div class="config-field">
+                <label for="config-domain">Domínio Freshservice</label>
+                <input type="text" id="config-domain" placeholder="trinus.freshservice.com" autocomplete="off">
+                <span class="help-text">Sem https:// — apenas o domínio</span>
+            </div>
+
+            <div class="config-field">
+                <label for="config-apikey">Chave de API</label>
+                <input type="password" id="config-apikey" placeholder="Cole sua API Key aqui" autocomplete="off">
+                <span class="help-text">Encontrada em Perfil → Segurança → API Key no Freshservice</span>
+            </div>
+
+            <div class="config-actions">
+                <button id="btn-config-cancel" class="btn btn-ghost">Cancelar</button>
+                <button id="btn-config-save" class="btn btn-primary">
+                    <i class="ph ph-floppy-disk"></i> Salvar
+                </button>
+            </div>
         </div>
     </div>
 
