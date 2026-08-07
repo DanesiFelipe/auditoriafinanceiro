@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoria Financeira - Freshservice</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <i class="ph ph-currency-dollar"></i>
+                <h2>FinAudit</h2>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active">
+                    <i class="ph ph-table"></i>
+                    <span>Auditoria</span>
+                </a>
+                <a href="#" class="nav-item" id="btn-export-csv">
+                    <i class="ph ph-file-csv"></i>
+                    <span>Exportar CSV</span>
+                </a>
+                <a href="#" class="nav-item" id="btn-export-excel">
+                    <i class="ph ph-file-xls"></i>
+                    <span>Exportar Excel</span>
+                </a>
+                <a href="#" class="nav-item" id="btn-refresh" title="Recarregar dados">
+                    <i class="ph ph-arrows-clockwise"></i>
+                    <span>Atualizar View</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="last-sync">
+                    <span class="label">Última Sincronização:</span>
+                    <span id="sync-time" class="value">Carregando...</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <div class="title-section">
+                    <h1>Painel de Auditoria</h1>
+                    <p>Backoffice Financeiro - Solicitações de Pagamento</p>
+                </div>
+                
+                <div class="actions-section">
+                    <div class="search-bar">
+                        <i class="ph ph-magnifying-glass"></i>
+                        <input type="text" id="global-search" placeholder="Buscar em todas as colunas...">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Filters Section -->
+            <section class="filters-panel">
+                <div class="filter-group">
+                    <label for="filter-status">Status</label>
+                    <select id="filter-status">
+                        <option value="">Todos</option>
+                        <option value="2">Aberto (2)</option>
+                        <option value="3">Pendente (3)</option>
+                        <option value="4">Resolvido (4)</option>
+                        <option value="5">Fechado (5)</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-tipo-pagamento">Tipo Pgto</label>
+                    <select id="filter-tipo-pagamento">
+                        <option value="">Todos</option>
+                        <option value="TED">TED</option>
+                        <option value="BOLETO">BOLETO</option>
+                        <option value="PIX">PIX</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-empreendimento">Empreendimento</label>
+                    <input type="text" id="filter-empreendimento" placeholder="Filtrar empresa...">
+                </div>
+                <div class="filter-group date-filter">
+                    <label>Data de Criação</label>
+                    <div class="date-inputs">
+                        <input type="date" id="filter-date-start" title="Data Inicial">
+                        <span>até</span>
+                        <input type="date" id="filter-date-end" title="Data Final">
+                    </div>
+                </div>
+                <button id="btn-clear-filters" class="btn btn-secondary">
+                    <i class="ph ph-x"></i> Limpar Filtros
+                </button>
+            </section>
+
+            <!-- Data Table -->
+            <section class="table-container">
+                <div id="loading-indicator" class="loading-state">
+                    <i class="ph ph-spinner-gap ph-spin"></i>
+                    <p>Carregando dados...</p>
+                </div>
+                
+                <div class="table-wrapper">
+                    <table id="audit-table">
+                        <thead>
+                            <tr>
+                                <th># ID <i class="ph ph-caret-up sort-icon"></i></th>
+                                <th>Assunto</th>
+                                <th>Status</th>
+                                <th>Prioridade</th>
+                                <th>Origem</th>
+                                <th>E-mail Solicitante</th>
+                                <th>Nome Solicitante</th>
+                                <th>Empresa / Empreend.</th>
+                                <th>Valor</th>
+                                <th>Tempo Gasto</th>
+                                <th>Possui Doc?</th>
+                                <th>Arquivos Anexos</th>
+                                <th>Banco</th>
+                                <th>Agência</th>
+                                <th>Conta</th>
+                                <th>Tipo Pgto</th>
+                                <th>Contrato / Medição</th>
+                                <th>Agente</th>
+                                <th class="actions-col">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="audit-tbody">
+                            <!-- Rows will be injected here via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="table-footer">
+                    <span id="record-count">0 registros encontrados</span>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Details Modal -->
+    <div id="details-modal" class="modal-overlay">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 id="modal-title">Detalhes do Ticket #ID</h2>
+                <button id="btn-close-modal" class="btn-icon"><i class="ph ph-x"></i></button>
+            </header>
+            <div class="modal-body" id="modal-body">
+                <!-- Content injected via JS -->
+            </div>
+            <footer class="modal-footer">
+                <a href="#" id="modal-ticket-link" target="_blank" class="btn btn-primary">
+                    <i class="ph ph-arrow-square-out"></i> Abrir no Freshservice
+                </a>
+            </footer>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
