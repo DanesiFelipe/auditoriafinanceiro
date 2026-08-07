@@ -206,7 +206,7 @@ function renderTable(data) {
     if (data.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="19" style="text-align:center; padding:3rem; color: var(--text-muted);">
+                <td colspan="18" style="text-align:center; padding:3rem; color: var(--text-muted);">
                     <i class="ph ph-funnel-x" style="font-size:2rem; display:block; margin-bottom:.5rem; color: var(--trinus-blue); opacity: 0.5;"></i>
                     Nenhum registro encontrado com os filtros aplicados.
                 </td>
@@ -218,8 +218,13 @@ function renderTable(data) {
     data.forEach(ticket => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td style="font-weight:700; color: var(--trinus-horizon);">#${ticket.id}</td>
-            <td><div class="truncate" title="${escapeHtml(ticket.subject)}">${escapeHtml(ticket.subject)}</div></td>
+            <td style="white-space:normal; vertical-align:top; min-width:100px;">
+                <span class="tk-num" id="num-${ticket.id}" onclick="toggleTicketDesc(${ticket.id})">#${ticket.id}</span>
+                <div class="tk-desc" id="desc-${ticket.id}">
+                    ${escapeHtml(ticket.subject)}
+                    <br><a class="tk-link" href="https://trinus.freshservice.com/a/tickets/${ticket.id}" target="_blank" rel="noopener noreferrer">Abrir no Freshservice ↗</a>
+                </div>
+            </td>
             <td><span class="badge status-${ticket.status}">${getStatusName(ticket.status)}</span></td>
             <td>${renderPriority(ticket.priority)}</td>
             <td>${getSourceName(ticket.source)}</td>
@@ -246,6 +251,18 @@ function renderTable(data) {
     });
 
     recordCount.textContent = `${data.length} registro${data.length !== 1 ? 's' : ''} encontrado${data.length !== 1 ? 's' : ''}`;
+}
+
+// =========================================
+// TOGGLE TICKET DESCRIÇÃO (igual ao dash-descontos)
+// =========================================
+function toggleTicketDesc(id) {
+    const desc = document.getElementById('desc-' + id);
+    const num  = document.getElementById('num-'  + id);
+    if (!desc || !num) return;
+    const open = desc.style.display === 'block';
+    desc.style.display = open ? 'none' : 'block';
+    num.classList.toggle('open', !open);
 }
 
 // =========================================
@@ -303,7 +320,7 @@ function applyFilters() {
 // ORDENAÇÃO
 // =========================================
 const colKeys = [
-    'id', 'subject', 'status', 'priority', 'source', 'requester_email',
+    'id', 'status', 'priority', 'source', 'requester_email',
     'requester_name', 'empreendimento', 'valor', 'tempo_gasto', 'tem_documento',
     'attachments', 'banco', 'agencia', 'conta', 'tipo_pagamento', 'contrato_medicao', 'agente'
 ];

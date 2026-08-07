@@ -1183,6 +1183,76 @@ tr:hover td.actions-col {
 }
 
 /* =========================================
+   TICKET EXPAND (padrão dash-descontos)
+   ========================================= */
+.tk-num {
+    cursor: pointer;
+    color: var(--trinus-horizon);
+    font-weight: 800;
+    font-size: 0.85rem;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    letter-spacing: -0.02em;
+    transition: color 0.15s;
+}
+
+.tk-num::after {
+    content: '▾';
+    font-size: 0.65rem;
+    transition: transform 0.2s;
+    display: inline-block;
+    opacity: 0.6;
+}
+
+.tk-num.open::after {
+    transform: rotate(180deg);
+}
+
+.tk-num:hover {
+    color: var(--trinus-blue);
+}
+
+.tk-desc {
+    display: none;
+    margin-top: 7px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.55;
+    background: rgba(26, 110, 232, 0.06);
+    border: 1px solid rgba(26, 110, 232, 0.15);
+    border-left: 3px solid var(--trinus-blue);
+    padding: 8px 10px;
+    border-radius: 0 var(--radius-md) var(--radius-md) var(--radius-md);
+    max-width: 280px;
+    white-space: normal;
+    word-break: break-word;
+    animation: fadeInUp 0.15s ease;
+}
+
+.tk-link {
+    color: var(--trinus-horizon);
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-top: 6px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.85;
+    transition: opacity 0.15s;
+}
+
+.tk-link:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+/* =========================================
    RESPONSIVO
    ========================================= */
 @media (max-width: 768px) {
