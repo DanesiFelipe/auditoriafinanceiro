@@ -36,4 +36,5 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add data/tickets.json
           git commit -m "chore: atualiza tickets do freshservice (auditoria)" || exit 0
+          git pull --rebase origin main
           git push
