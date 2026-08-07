@@ -289,7 +289,8 @@ async function main() {
             totalRecords: result.length,
             workspaceId:  WORKSPACE_ID,
             serviceItems: TARGET_ITEM_IDS,
-            note:         'IDs reais do Freshservice'
+            note:         'IDs reais do Freshservice',
+            agents:       agents
         },
         tickets: result
     };

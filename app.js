@@ -15,6 +15,7 @@ const SERVICE_ITEM_IDS = [477, 476];
 // =========================================
 let ticketsData   = [];
 let filteredData  = [];
+let agentsMap     = {};
 let sortCol       = 'id';
 let sortAsc       = false;
 
@@ -168,6 +169,10 @@ async function loadData() {
 
         const data = await response.json();
         ticketsData = data.tickets || [];
+        
+        if (data.metadata?.agents) {
+            agentsMap = data.metadata.agents;
+        }
 
         if (data.metadata?.lastSync) {
             const d = new Date(data.metadata.lastSync);
@@ -676,14 +681,19 @@ function renderConversations(conversations) {
         const isNote     = conv.incoming === false && conv.support_email == null;
         const isIncoming = conv.incoming === true;
 
+        let agentNameStr = 'Agente';
+        if (conv.user_id && agentsMap[conv.user_id]) {
+            agentNameStr = agentsMap[conv.user_id];
+        }
+
         const authorName = isIncoming
             ? (conv.from_email || 'Solicitante')
-            : (conv.user_id ? `Agente` : 'Sistema');
+            : (conv.user_id ? agentNameStr : 'Sistema');
 
         // Tentar extrair nome do from_email
         const displayName = conv.from_email
             ? conv.from_email.replace(/<.*>/, '').trim() || conv.from_email
-            : (isIncoming ? 'Solicitante' : 'Agente');
+            : (isIncoming ? 'Solicitante' : agentNameStr);
 
         const avatarClass = isNote ? 'note' : (isIncoming ? 'customer' : 'agent');
         const initials    = getInitials(displayName);
