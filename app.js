@@ -211,7 +211,7 @@ function renderTable(data) {
     if (data.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="18" style="text-align:center; padding:3rem; color: var(--text-muted);">
+                <td colspan="19" style="text-align:center; padding:3rem; color: var(--text-muted);">
                     <i class="ph ph-funnel-x" style="font-size:2rem; display:block; margin-bottom:.5rem; color: var(--trinus-blue); opacity: 0.5;"></i>
                     Nenhum registro encontrado com os filtros aplicados.
                 </td>
@@ -230,6 +230,7 @@ function renderTable(data) {
                     <br><a class="tk-link" href="https://trinus.freshservice.com/a/tickets/${ticket.id}" target="_blank" rel="noopener noreferrer">Abrir no Freshservice ↗</a>
                 </div>
             </td>
+            <td>${formatDate(ticket.created_at)}</td>
             <td><span class="badge status-${ticket.status}">${getStatusName(ticket.status)}</span></td>
             <td>${renderPriority(ticket.priority)}</td>
             <td>${getSourceName(ticket.source)}</td>
@@ -325,7 +326,7 @@ function applyFilters() {
 // ORDENAÇÃO
 // =========================================
 const colKeys = [
-    'id', 'status', 'priority', 'source', 'requester_email',
+    'id', 'created_at', 'status', 'priority', 'source', 'requester_email',
     'requester_name', 'empreendimento', 'valor', 'tempo_gasto', 'tem_documento',
     'attachments', 'banco', 'agencia', 'conta', 'tipo_pagamento', 'contrato_medicao', 'agente'
 ];
@@ -707,9 +708,8 @@ function renderConversations(conversations) {
                 : `<span class="conv-type-tag reply"><i class="ph ph-headset"></i> Resposta do Agente</span>`
               );
 
-        // Corpo da mensagem: usar body_text (texto puro) ou limpar HTML levemente
-        let bodyContent = conv.body_text || stripHtml(conv.body || '');
-        if (!bodyContent) bodyContent = '(sem conteúdo)';
+        // Corpo da mensagem: usar body (HTML rico) direto do Freshservice
+        let bodyContent = conv.body || conv.body_text || '(sem conteúdo)';
 
         const bubbleClass = isNote ? 'conv-body note-body' : 'conv-body';
 
@@ -753,7 +753,7 @@ function renderConversations(conversations) {
                         ${typeLabel}
                         <span class="conv-date">${formatDate(conv.created_at)}</span>
                     </div>
-                    <div class="${bubbleClass}">${escapeHtml(bodyContent)}</div>
+                    <div class="${bubbleClass}">${bodyContent}</div>
                     ${attachmentsHtml}
                 </div>
             </div>
