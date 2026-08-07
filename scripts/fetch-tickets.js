@@ -90,10 +90,8 @@ function get(apiPath) {
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // ─── BUSCAR UMA PÁGINA DE TICKETS ────────────────────────────────────────────
-async function fetchTicketsPage(page) {
-    // Usamos updated_since para destravar o limite de paginação (permite até 300 páginas em vez de 30)
-    // Filtramos desde Jan/2025 para garantir que pegaremos todo o histórico necessário
-    const path = `/api/v2/tickets?workspace_id=${WORKSPACE_ID}&updated_since=2025-01-01T00:00:00Z&per_page=100&page=${page}&order_by=created_at&order_type=desc&include=requester`;
+async function fetchTicketsPage(currentUpdatedSince, page) {
+    const path = `/api/v2/tickets?workspace_id=${WORKSPACE_ID}&updated_since=${currentUpdatedSince}&per_page=100&page=${page}&order_by=updated_at&order_type=asc&include=requester`;
     const data = await get(path);
     return data ? (data.tickets || []) : [];
 }
@@ -142,39 +140,60 @@ async function main() {
     // 2. Buscar todos os tickets paginando
     log('[ 2/3 ] Buscando tickets do Freshservice...\n');
 
-    const allTickets = [];
-    let page = 1;
-    const MAX_PAGES = 300; // Com updated_since, o limite sobe para 300 páginas (30.000 tickets)
+    const allTicketsMap = new Map();
+    let currentUpdatedSince = '2025-01-01T00:00:00Z';
+    const MAX_PAGES = 300;
 
-    while (page <= MAX_PAGES) {
-        log(`  Página ${page}...`);
-        let tickets;
-        try {
-            tickets = await fetchTicketsPage(page);
-        } catch (e) {
-            err(`Erro na página ${page}: ${e.message}`);
-            if (page === 1) throw e; // Fatal se nem a primeira página funcionar
-            break;
+    while (true) {
+        let page = 1;
+        let fetchedInCycle = 0;
+        let lastUpdatedAt = currentUpdatedSince;
+
+        while (page <= MAX_PAGES) {
+            log(`  [Data >= ${currentUpdatedSince}] Página ${page}...`);
+            let tickets;
+            try {
+                tickets = await fetchTicketsPage(currentUpdatedSince, page);
+            } catch (e) {
+                err(`Erro na página ${page}: ${e.message}`);
+                if (page === 1) throw e;
+                break;
+            }
+
+            if (!tickets.length) {
+                log(`  → Página vazia. Fim deste ciclo.`);
+                break;
+            }
+
+            tickets.forEach(t => {
+                if (!allTicketsMap.has(t.id)) allTicketsMap.set(t.id, t);
+                lastUpdatedAt = t.updated_at;
+            });
+            
+            log(`  → ${tickets.length} tickets (Total único: ${allTicketsMap.size})`);
+            fetchedInCycle += tickets.length;
+
+            if (tickets.length < 100) {
+                log('  → Fim dos tickets (menos de 100).');
+                break;
+            }
+
+            page++;
+            await sleep(400);
         }
 
-        if (!tickets.length) {
-            log(`  → Página ${page} vazia. Fim da paginação.`);
-            break;
+        // Se baixou 30.000 tickets, significa que bateu no limite do max pages
+        // Entao avança a janela de tempo e tenta buscar os mais novos
+        if (fetchedInCycle >= (MAX_PAGES * 100)) {
+            currentUpdatedSince = lastUpdatedAt;
+            log(`\n  → Limite de 30k tickets atingido! Deslizando janela de data para: ${currentUpdatedSince}\n`);
+        } else {
+            break; // Acabaram todos os tickets
         }
-
-        log(`  → ${tickets.length} tickets retornados.`);
-        allTickets.push(...tickets);
-
-        if (tickets.length < 100) {
-            log('  → Última página atingida.');
-            break;
-        }
-
-        page++;
-        await sleep(400);
     }
 
-    log(`\n  Total bruto: ${allTickets.length} tickets\n`);
+    const allTickets = Array.from(allTicketsMap.values());
+    log(`\n  Total bruto extraído: ${allTickets.length} tickets\n`);
 
     // 3. Processar — checar requested_items para filtrar por item 476/477
     log('[ 3/3 ] Processando e filtrando por service items 476 e 477...\n');

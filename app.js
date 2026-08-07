@@ -77,14 +77,13 @@ function loadConfigFromStorage() {
 
 function getApiConfig() {
     return {
-        domain: localStorage.getItem('fs_domain') || '',
-        apiKey: localStorage.getItem('fs_apikey')  || ''
+        domain: 'trinushelpdesk.freshservice.com',
+        apiKey: 'soZOUw0m5MjXUQY8oPME'
     };
 }
 
 function isApiConfigured() {
-    const { domain, apiKey } = getApiConfig();
-    return domain.length > 0 && apiKey.length > 0;
+    return true;
 }
 
 // =========================================
