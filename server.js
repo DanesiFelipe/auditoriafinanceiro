@@ -365,9 +365,17 @@ app.post('/api/login', (req, res) => {
     if (!username || !password) return res.status(400).json({ status: 'error', message: 'Campos obrigatorios.' });
 
     const user = users[username.trim().toLowerCase()];
-    const hash = crypto.createHash('sha256').update(password).digest('hex');
+    if (!user) return res.status(401).json({ status: 'error', message: 'Usuario ou senha incorretos.' });
 
-    if (user && user.hash === hash) {
+    // Se o usuario tem salt, usar PBKDF2. Se nao tem, usa SHA256 antigo (retrocompatibilidade)
+    let hash;
+    if (user.salt) {
+        hash = crypto.pbkdf2Sync(password, Buffer.from(user.salt, 'hex'), 100000, 32, 'sha256').toString('hex');
+    } else {
+        hash = crypto.createHash('sha256').update(password).digest('hex');
+    }
+
+    if (user.hash === hash) {
         return res.json({ status: 'success', role: user.role || 'user' });
     }
     return res.status(401).json({ status: 'error', message: 'Usuario ou senha incorretos.' });
@@ -385,8 +393,12 @@ app.post('/api/users', (req, res) => {
     if (!u || !password) return res.status(400).json({ status: 'error', message: 'Campos obrigatorios.' });
     if (users[u]) return res.status(400).json({ status: 'error', message: 'Usuario ja existe.' });
 
+    const salt = crypto.randomBytes(16).toString('hex');
+    const hash = crypto.pbkdf2Sync(password, Buffer.from(salt, 'hex'), 100000, 32, 'sha256').toString('hex');
+
     users[u] = {
-        hash: crypto.createHash('sha256').update(password).digest('hex'),
+        salt: salt,
+        hash: hash,
         role: ['admin', 'user'].includes(role) ? role : 'user'
     };
     saveUsers();

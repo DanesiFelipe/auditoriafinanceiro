@@ -66,14 +66,33 @@ loginForm.addEventListener('submit', async (e) => {
             if (!fallbackResp.ok) throw new Error();
             const usersObj = await fallbackResp.json();
             
-            // Fazer o hash da senha usando Web Crypto API
-            const msgBuffer = new TextEncoder().encode(password);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const passHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
             const userEntry = usersObj[username];
-            if (userEntry && userEntry.hash === passHash) {
+            if (!userEntry) {
+                showLoginError('Usuário ou senha incorretos.');
+                return;
+            }
+
+            let passHash;
+            if (userEntry.salt) {
+                // Hashing com PBKDF2
+                const enc = new TextEncoder();
+                const keyMaterial = await crypto.subtle.importKey(
+                    "raw", enc.encode(password), {name: "PBKDF2"}, false, ["deriveBits"]
+                );
+                const saltBuffer = new Uint8Array(userEntry.salt.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                const keyBuffer = await crypto.subtle.deriveBits(
+                    { name: "PBKDF2", salt: saltBuffer, iterations: 100000, hash: "SHA-256" },
+                    keyMaterial, 256
+                );
+                passHash = Array.from(new Uint8Array(keyBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+            } else {
+                // Retrocompatibilidade (SHA-256 simples)
+                const msgBuffer = new TextEncoder().encode(password);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+                passHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+            }
+
+            if (userEntry.hash === passHash) {
                 sessionStorage.setItem('trinus_auth', 'true');
                 sessionStorage.setItem('trinus_role', userEntry.role || 'user');
                 sessionStorage.setItem('trinus_user', username);

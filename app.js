@@ -577,26 +577,52 @@ function closeUsersModal() {
 async function loadUsersList() {
     const tbody = document.getElementById('users-list-body');
     try {
-        const resp = await fetch(`${window.API_BASE}/api/users`);
-        const data = await resp.json();
-        if (data.status === 'success') {
-            tbody.innerHTML = data.users.map(u => `
-                <tr style="border-bottom:1px solid var(--border-color);">
-                    <td style="padding:10px 15px;">
-                        <strong style="font-size:.85rem;">${escapeHtml(u.username)}</strong>
-                        <span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:.7rem;font-weight:700;background:${u.role==='admin'?'rgba(100,255,160,0.12)':'rgba(100,140,255,0.12)'};color:${u.role==='admin'?'#4ade80':'#93c5fd'};">
-                            ${u.role === 'admin' ? 'Admin' : 'Comum'}
-                        </span>
-                    </td>
-                    <td style="padding:10px 15px;text-align:right;display:flex;gap:6px;justify-content:flex-end;">
+        let users = [];
+        let isStaticMode = false;
+        
+        try {
+            const resp = await fetch(`${window.API_BASE}/api/users`);
+            if (!resp.ok) throw new Error();
+            const data = await resp.json();
+            users = data.users || [];
+        } catch {
+            console.warn('Servidor offline. Carregando usuários no modo leitura (GitHub Pages).');
+            isStaticMode = true;
+            const fb = await fetch('data/users.json');
+            const dataObj = await fb.json();
+            users = Object.entries(dataObj).map(([k, v]) => ({ username: k, role: v.role }));
+        }
+
+        if (!users.length) {
+            tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;">Nenhum usuário.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = users.map(u => `
+            <tr style="border-bottom:1px solid var(--border-color);">
+                <td style="padding:10px 15px;">
+                    <strong style="font-size:.85rem;">${escapeHtml(u.username)}</strong>
+                    <span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:.7rem;font-weight:700;background:${u.role==='admin'?'rgba(100,255,160,0.12)':'rgba(100,140,255,0.12)'};color:${u.role==='admin'?'#4ade80':'#93c5fd'};">
+                        ${u.role === 'admin' ? 'Admin' : 'Comum'}
+                    </span>
+                </td>
+                <td style="padding:10px 15px;text-align:right;display:flex;gap:6px;justify-content:flex-end;">
+                    ${!isStaticMode ? `
                         <button onclick="changeRole('${u.username}','${u.role === 'admin' ? 'user' : 'admin'}')" class="btn btn-secondary" style="font-size:.75rem;padding:4px 10px;">
                             ${u.role === 'admin' ? '↓ Tornar Comum' : '↑ Tornar Admin'}
                         </button>
                         <button onclick="deleteUser('${u.username}')" class="btn-icon" style="color:rgba(255,100,100,.8);" title="Remover usuário">
                             <i class="ph ph-trash"></i>
                         </button>
-                    </td>
-                </tr>`).join('');
+                    ` : '<span style="color:var(--text-muted);font-size:0.8rem;">Somente leitura</span>'}
+                </td>
+            </tr>`).join('');
+
+        if (isStaticMode) {
+            const formContainer = document.getElementById('form-add-user');
+            if (formContainer) {
+                formContainer.innerHTML = '<div style="color:var(--trinus-horizon);padding:1rem;text-align:center;background:rgba(215,75,75,0.1);border-radius:8px;">⚠️ Você está visualizando pelo GitHub Pages.<br>Para adicionar ou remover usuários, você deve abrir o sistema rodando o <strong>iniciar.bat</strong> localmente.</div>';
+            }
         }
     } catch (e) {
         tbody.innerHTML = `<tr><td colspan="2" style="padding:10px;color:var(--status-pending-text);">Erro ao carregar usuários.</td></tr>`;
