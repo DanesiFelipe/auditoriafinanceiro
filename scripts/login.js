@@ -64,19 +64,26 @@ loginForm.addEventListener('submit', async (e) => {
             console.warn('Servidor Node.js não encontrado. Usando autenticação estática de fallback...');
             const fallbackResp = await fetch('data/users.json');
             if (!fallbackResp.ok) throw new Error();
-            const users = await fallbackResp.json();
+            const usersObj = await fallbackResp.json();
             
-            const user = users.find(u => u.username === username && u.password === password);
-            if (user) {
+            // Fazer o hash da senha usando Web Crypto API
+            const msgBuffer = new TextEncoder().encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const passHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+            const userEntry = usersObj[username];
+            if (userEntry && userEntry.hash === passHash) {
                 sessionStorage.setItem('trinus_auth', 'true');
-                sessionStorage.setItem('trinus_role', user.role || 'user');
+                sessionStorage.setItem('trinus_role', userEntry.role || 'user');
                 sessionStorage.setItem('trinus_user', username);
                 unlockApp();
             } else {
                 showLoginError('Usuário ou senha incorretos.');
             }
         } catch (e) {
-            showLoginError('Servidor indisponível e arquivo de usuários não encontrado.');
+            console.error(e);
+            showLoginError('Servidor indisponível e erro ao carregar fallback estático.');
         }
     }
 });
