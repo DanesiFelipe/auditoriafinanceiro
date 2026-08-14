@@ -59,7 +59,25 @@ loginForm.addEventListener('submit', async (e) => {
             showLoginError(data.message || 'Usuário ou senha incorretos.');
         }
     } catch {
-        showLoginError('Servidor indisponível. Verifique se o servidor está rodando.');
+        // Fallback: Modo estático (GitHub Pages) lê direto do arquivo JSON
+        try {
+            console.warn('Servidor Node.js não encontrado. Usando autenticação estática de fallback...');
+            const fallbackResp = await fetch('data/users.json');
+            if (!fallbackResp.ok) throw new Error();
+            const users = await fallbackResp.json();
+            
+            const user = users.find(u => u.username === username && u.password === password);
+            if (user) {
+                sessionStorage.setItem('trinus_auth', 'true');
+                sessionStorage.setItem('trinus_role', user.role || 'user');
+                sessionStorage.setItem('trinus_user', username);
+                unlockApp();
+            } else {
+                showLoginError('Usuário ou senha incorretos.');
+            }
+        } catch (e) {
+            showLoginError('Servidor indisponível e arquivo de usuários não encontrado.');
+        }
     }
 });
 
