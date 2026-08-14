@@ -1,0 +1,14 @@
+{
+  "felipe.danesi": {
+    "hash": "0b2cb782ec0e144ab91709ef43859f251662499f61a666896ca2837e49088eee",
+    "role": "admin"
+  },
+  "admin": {
+    "hash": "ae254c58203a10c75617532655683b4fe386a95b4f585fc57ad2acdc80fde275",
+    "role": "admin"
+  },
+  "eduarda.brasiliano": {
+    "hash": "eb8b3cf9b8a37a3d0e2c71abf4987d9410eb867843c3dd92ae184cea7fd35176",
+    "role": "user"
+  }
+}

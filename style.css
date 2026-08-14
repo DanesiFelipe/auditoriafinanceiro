@@ -245,28 +245,92 @@ body {
     font-weight: 500;
 }
 
-/* Botão de configuração na sidebar footer */
-.btn-config {
+/* Status do servidor */
+.server-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: var(--spacing-sm);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    flex-shrink: 0;
+    transition: background 0.3s;
+}
+
+.status-dot.online {
+    background: var(--type-pix);
+    box-shadow: 0 0 6px var(--type-pix);
+}
+
+.status-dot.offline {
+    background: #ef4444;
+    box-shadow: 0 0 6px #ef4444;
+}
+
+/* Botão de sincronização */
+.btn-sync {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
     width: 100%;
     margin-top: var(--spacing-sm);
-    padding: 8px var(--spacing-md);
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.1);
+    padding: 9px var(--spacing-md);
+    background: rgba(15, 228, 245, 0.1);
+    border: 1px solid rgba(15, 228, 245, 0.25);
     border-radius: var(--radius-md);
-    color: rgba(255,255,255,0.6);
+    color: var(--trinus-horizon);
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 0.8rem;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
 }
 
-.btn-config:hover {
-    background: rgba(255,255,255,0.12);
+.btn-sync:hover:not(:disabled) {
+    background: rgba(15, 228, 245, 0.18);
+    border-color: rgba(15, 228, 245, 0.5);
     color: var(--trinus-white);
+}
+
+.btn-sync:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Barra de progresso da sync */
+.sync-progress-bar {
+    margin-top: var(--spacing-sm);
+    background: rgba(255,255,255,0.06);
+    border-radius: 99px;
+    height: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+.sync-progress-fill {
+    height: 100%;
+    background: var(--grad-primary);
+    border-radius: 99px;
+    transition: width 0.4s ease;
+    width: 0%;
+}
+
+.sync-progress-label {
+    display: block;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.4);
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* =========================================
@@ -1150,6 +1214,113 @@ tr:hover td.actions-col {
 }
 
 /* =========================================
+   LOGIN SCREEN
+   ========================================= */
+.login-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--bg-body);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.login-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.login-card {
+    background: var(--bg-base);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    animation: slideUp 0.4s ease-out forwards;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-header .logo-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--trinus-blue) 0%, var(--trinus-horizon) 100%);
+    border-radius: var(--radius-md);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 auto 1rem;
+    box-shadow: 0 4px 15px rgba(26, 110, 232, 0.3);
+}
+
+.login-header h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.login-header p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.input-group {
+    margin-bottom: 1.5rem;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-primary);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--trinus-blue);
+    box-shadow: 0 0 0 3px rgba(26, 110, 232, 0.15);
+    background: var(--bg-base);
+}
+
+.error-msg {
+    color: var(--status-resolved-text);
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    display: none;
+    font-weight: 500;
+}
+
+/* =========================================
    SCROLLBAR
    ========================================= */
 ::-webkit-scrollbar {
@@ -1260,4 +1431,73 @@ tr:hover td.actions-col {
     .modal-details-section { grid-template-columns: 1fr; }
     .topbar { padding: var(--spacing-md); }
     .table-container { padding: var(--spacing-md); }
+}
+
+/* =========================================
+   PAGINAÇÃO
+   ========================================= */
+.table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pg-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    font-size: 0.82rem;
+    font-family: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.pg-btn:hover:not(:disabled) {
+    background: rgba(26, 110, 232, 0.15);
+    border-color: var(--trinus-blue);
+    color: var(--trinus-horizon);
+}
+
+.pg-btn.active {
+    background: var(--trinus-blue);
+    border-color: var(--trinus-blue);
+    color: #fff;
+    font-weight: 700;
+}
+
+.pg-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.pg-ellipsis {
+    padding: 0 4px;
+    color: var(--text-muted);
+}
+
+.pg-info {
+    margin-left: 8px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    white-space: nowrap;
 }

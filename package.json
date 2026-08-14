@@ -1,0 +1,18 @@
+{
+  "name": "freshservice-auditoria-v2",
+  "version": "2.0.0",
+  "description": "Trinus Audit v2 — Servidor Node.js com fetch inteligente",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

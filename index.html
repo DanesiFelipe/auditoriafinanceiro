@@ -3,24 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trinus Audit — Backoffice Financeiro</title>
-    <meta name="description" content="Painel de auditoria financeira do Backoffice Trinus — Solicitações de Pagamento">
+    <title>Trinus Audit v2 — Backoffice Financeiro</title>
+    <meta name="description" content="Painel de auditoria financeira do Backoffice Trinus — Solicitações de Pagamento v2">
     <link rel="stylesheet" href="style.css">
-    <!-- Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- SheetJS for Excel export -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-    <div class="app-container">
+    <!-- LOGIN -->
+    <div id="login-overlay" class="login-overlay active">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo-icon">↗</div>
+                <h2>Trinus Audit <span style="font-size:0.65em; opacity:0.6; font-weight:500;">v2</span></h2>
+                <p>Acesso Restrito</p>
+            </div>
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="login-user">Usuário</label>
+                    <input type="text" id="login-user" placeholder="Digite seu usuário" required autocomplete="username">
+                </div>
+                <div class="input-group">
+                    <label for="login-password">Senha de Acesso</label>
+                    <input type="password" id="login-password" placeholder="Digite a senha" required autocomplete="current-password">
+                    <p id="login-error" class="error-msg"></p>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" id="login-btn" style="width:100%;justify-content:center;">
+                    <i class="ph ph-sign-in"></i> Entrar
+                </button>
+            </form>
+        </div>
+    </div>
 
-        <!-- ========================
-             SIDEBAR
-             ======================== -->
+    <!-- APP -->
+    <div class="app-container" style="display:none;" id="main-app">
+
+        <!-- SIDEBAR -->
         <aside class="sidebar">
             <div class="logo-area">
                 <div class="logo-icon">↗</div>
@@ -49,30 +70,47 @@
                 </a>
 
                 <div class="nav-divider"></div>
-                <span class="nav-label">Dados</span>
+                <span class="nav-label">Dados &amp; Adm</span>
                 <a href="#" class="nav-item" id="btn-refresh">
                     <i class="ph ph-arrows-clockwise"></i>
                     <span>Atualizar View</span>
                 </a>
+                <a href="#" class="nav-item" id="btn-manage-users">
+                    <i class="ph ph-users"></i>
+                    <span>Gerenciar Usuários</span>
+                </a>
             </nav>
 
+            <div class="nav-divider"></div>
+            <div class="nav-logout">
+                <a href="#" class="nav-item" id="btn-logout" style="color:rgba(255,100,100,0.7);">
+                    <i class="ph ph-sign-out"></i>
+                    <span>Sair</span>
+                </a>
+            </div>
+
             <div class="sidebar-footer">
+                <div class="server-status" id="server-status">
+                    <span class="status-dot" id="status-dot"></span>
+                    <span id="status-label">Verificando...</span>
+                </div>
                 <div class="last-sync">
                     <span class="label">Última sincronização</span>
                     <span id="sync-time" class="value">Carregando...</span>
                 </div>
-                <button id="btn-config" class="btn-config" style="display: none;">
-                    <i class="ph ph-gear"></i>
-                    Configurar API
+                <button id="btn-sync-now" class="btn-sync">
+                    <i class="ph ph-cloud-arrow-down"></i>
+                    Sincronizar Dados
                 </button>
+                <div id="sync-progress-bar" class="sync-progress-bar" style="display:none;">
+                    <div class="sync-progress-fill" id="sync-progress-fill"></div>
+                    <span class="sync-progress-label" id="sync-progress-label">Aguardando...</span>
+                </div>
             </div>
         </aside>
 
-        <!-- ========================
-             MAIN CONTENT
-             ======================== -->
+        <!-- MAIN CONTENT -->
         <main class="main-content">
-            <!-- Topbar -->
             <header class="topbar">
                 <div class="title-section">
                     <h1>
@@ -81,7 +119,6 @@
                     </h1>
                     <p>Solicitações de Pagamento · Workspace Backoffice Financeiro</p>
                 </div>
-
                 <div class="actions-section">
                     <div class="search-bar">
                         <i class="ph ph-magnifying-glass"></i>
@@ -90,7 +127,7 @@
                 </div>
             </header>
 
-            <!-- Filters Panel -->
+            <!-- Filters -->
             <section class="filters-panel">
                 <div class="filter-group">
                     <label for="filter-status">Status</label>
@@ -102,7 +139,6 @@
                         <option value="5">Fechado</option>
                     </select>
                 </div>
-
                 <div class="filter-group">
                     <label for="filter-tipo-pagamento">Tipo Pgto</label>
                     <select id="filter-tipo-pagamento">
@@ -112,7 +148,6 @@
                         <option value="PIX">PIX</option>
                     </select>
                 </div>
-
                 <div class="filter-group">
                     <label for="filter-prioridade">Prioridade</label>
                     <select id="filter-prioridade">
@@ -123,21 +158,18 @@
                         <option value="4">Urgente</option>
                     </select>
                 </div>
-
                 <div class="filter-group">
                     <label for="filter-documento">Possui Documento</label>
                     <select id="filter-documento">
                         <option value="">Todos</option>
                         <option value="Sim">Com documento</option>
-                        <option value="Não">Sem documento</option>
+                        <option value="Nao">Sem documento</option>
                     </select>
                 </div>
-
                 <div class="filter-group">
                     <label for="filter-empreendimento">Empreendimento</label>
                     <input type="text" id="filter-empreendimento" placeholder="Filtrar...">
                 </div>
-
                 <div class="filter-group date-filter">
                     <label>Data de Criação</label>
                     <div class="date-inputs">
@@ -146,64 +178,59 @@
                         <input type="date" id="filter-date-end" title="Data Final">
                     </div>
                 </div>
-
                 <button id="btn-clear-filters" class="btn btn-ghost">
                     <i class="ph ph-x"></i> Limpar
                 </button>
             </section>
 
-            <!-- Data Table -->
+            <!-- Table -->
             <section class="table-container">
                 <div id="loading-indicator" class="loading-state">
                     <i class="ph ph-spinner-gap ph-spin"></i>
                     <p>Carregando dados...</p>
                 </div>
-
                 <div class="table-wrapper">
                     <table id="audit-table">
                         <thead>
-                            <tr>
-                                <th># ID <i class="ph ph-caret-up sort-icon"></i></th>
-                                <th>Criado em</th>
-                                <th>Status</th>
-                                <th>Prioridade</th>
-                                <th>Origem</th>
-                                <th>E-mail Solicitante</th>
-                                <th>Nome Solicitante</th>
-                                <th>Empresa / Empreend.</th>
-                                <th>Valor</th>
-                                <th>Tempo Gasto</th>
-                                <th>Possui Doc?</th>
-                                <th>Arquivos Anexos</th>
-                                <th>Banco</th>
-                                <th>Agência</th>
-                                <th>Conta</th>
-                                <th>Tipo Pgto</th>
-                                <th>Contrato / Medição</th>
-                                <th>Agente</th>
+                                   <tr>
+                                <th data-col="0" class="sortable">Ticket <i class="ph ph-caret-up sort-icon"></i></th>
+                                <th data-col="1" class="sortable">Criado em <i class="ph ph-caret-up sort-icon"></i></th>
+                                <th data-col="2">Status</th>
+                                <th data-col="3">Prioridade</th>
+                                <th data-col="4">Origem</th>
+                                <th data-col="5">E-mail Solicitante</th>
+                                <th data-col="6">Nome Solicitante</th>
+                                <th data-col="7" class="sortable">Empreendimento <i class="ph ph-caret-up sort-icon"></i></th>
+                                <th data-col="8" class="sortable">Valor <i class="ph ph-caret-up sort-icon"></i></th>
+                                <th data-col="9">Tempo Gasto</th>
+                                <th data-col="10">Possui Doc?</th>
+                                <th data-col="11">Arquivos Anexos</th>
+                                <th data-col="12">Banco</th>
+                                <th data-col="13">Agência</th>
+                                <th data-col="14">Conta</th>
+                                <th data-col="15">Forma Pgto</th>
+                                <th data-col="16">Tipo Pgto</th>
+                                <th data-col="17">Contrato / Medição</th>
+                                <th data-col="18">Agente</th>
                                 <th class="actions-col">Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="audit-tbody">
-                            <!-- Rows injected via JS -->
-                        </tbody>
+                        <tbody id="audit-tbody"></tbody>
                     </table>
                 </div>
-
                 <div class="table-footer">
                     <span id="record-count">0 registros encontrados</span>
+                    <div id="pagination-container"></div>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- ========================
-         MODAL — DETALHES DO TICKET
-         ======================== -->
+    <!-- MODAL: Detalhes -->
     <div id="details-modal" class="modal-overlay" role="dialog" aria-modal="true">
         <div class="modal-content">
             <header class="modal-header">
-                <h2 id="modal-title">Detalhes do Ticket #ID</h2>
+                <h2 id="modal-title">Detalhes do Ticket</h2>
                 <div class="modal-header-actions">
                     <a href="#" id="modal-ticket-link" target="_blank" class="btn btn-primary" rel="noopener noreferrer">
                         <i class="ph ph-arrow-square-out"></i> Abrir no Freshservice
@@ -213,64 +240,71 @@
                     </button>
                 </div>
             </header>
-
             <div class="modal-body" id="modal-body">
-                <!-- Details section -->
-                <div class="modal-details-section" id="modal-details">
-                    <!-- Injected via JS -->
-                </div>
-
-                <!-- Conversations section -->
+                <div class="modal-details-section" id="modal-details"></div>
                 <div class="modal-conversations-section" id="modal-conversations">
                     <div class="section-header">
-                        <i class="ph ph-chat-dots" style="color: var(--trinus-blue); font-size: 1rem;"></i>
+                        <i class="ph ph-chat-dots" style="color:var(--trinus-blue);font-size:1rem;"></i>
                         <h3>Conversas e Notas Públicas</h3>
                         <span class="count-badge" id="conv-count">—</span>
                     </div>
                     <div id="conversations-list" class="conversations-list">
                         <div class="conv-loading">
-                            <i class="ph ph-spinner-gap ph-spin"></i>
-                            Carregando conversas...
+                            <i class="ph ph-spinner-gap ph-spin"></i> Carregando conversas...
                         </div>
                     </div>
                 </div>
             </div>
-
-            <footer class="modal-footer" id="modal-footer">
-                <!-- Footer populated via JS if needed -->
-            </footer>
+            <footer class="modal-footer" id="modal-footer"></footer>
         </div>
     </div>
 
-    <!-- ========================
-         MODAL — CONFIGURAÇÃO DE API
-         ======================== -->
-    <div id="config-modal" class="config-modal-overlay" role="dialog" aria-modal="true">
-        <div class="config-modal">
-            <h3><i class="ph ph-gear" style="margin-right:6px; color: var(--trinus-horizon);"></i>Configuração da API</h3>
-            <p>Para exibir conversas em tempo real, informe sua chave de API do Freshservice. Ela é salva apenas localmente no seu navegador (localStorage).</p>
-
-            <div class="config-field">
-                <label for="config-domain">Domínio Freshservice</label>
-                <input type="text" id="config-domain" placeholder="trinus.freshservice.com" autocomplete="off">
-                <span class="help-text">Sem https:// — apenas o domínio</span>
-            </div>
-
-            <div class="config-field">
-                <label for="config-apikey">Chave de API</label>
-                <input type="password" id="config-apikey" placeholder="Cole sua API Key aqui" autocomplete="off">
-                <span class="help-text">Encontrada em Perfil → Segurança → API Key no Freshservice</span>
-            </div>
-
-            <div class="config-actions">
-                <button id="btn-config-cancel" class="btn btn-ghost">Cancelar</button>
-                <button id="btn-config-save" class="btn btn-primary">
-                    <i class="ph ph-floppy-disk"></i> Salvar
+    <!-- MODAL: Gerenciar Usuários -->
+    <div id="users-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal-content" style="max-width:620px;">
+            <header class="modal-header">
+                <h2><i class="ph ph-users"></i> Gerenciar Usuários</h2>
+                <button id="btn-close-users-modal" class="btn-icon" aria-label="Fechar">
+                    <i class="ph ph-x"></i>
                 </button>
+            </header>
+            <div class="modal-body" style="padding:1.5rem;">
+                <form id="form-add-user" style="display:flex;gap:10px;margin-bottom:20px;align-items:flex-end;">
+                    <div class="input-group" style="flex:1;margin:0;">
+                        <label for="new-username" style="font-size:0.75rem;color:var(--text-secondary);">Novo Usuário</label>
+                        <input type="text" id="new-username" placeholder="ex: joao.silva" required style="width:100%;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--border-color);background:rgba(0,0,0,0.2);color:#fff;">
+                    </div>
+                    <div class="input-group" style="flex:1;margin:0;">
+                        <label for="new-password" style="font-size:0.75rem;color:var(--text-secondary);">Senha</label>
+                        <input type="password" id="new-password" placeholder="***" required style="width:100%;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--border-color);background:rgba(0,0,0,0.2);color:#fff;">
+                    </div>
+                    <div class="input-group" style="width:100px;margin:0;">
+                        <label for="new-role" style="font-size:0.75rem;color:var(--text-secondary);">Acesso</label>
+                        <select id="new-role" style="width:100%;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--border-color);background:rgba(0,0,0,0.2);color:#fff;">
+                            <option value="user">Comum</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-user" style="height:36px;padding:0 15px;">
+                        <i class="ph ph-user-plus"></i>
+                    </button>
+                </form>
+                <div style="background:var(--bg-elevated);border-radius:var(--radius-md);border:1px solid var(--border-color);overflow:hidden;">
+                    <table style="width:100%;border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border-color);">
+                                <th style="text-align:left;padding:10px 15px;font-size:0.75rem;color:var(--text-secondary);text-transform:uppercase;">Usuário</th>
+                                <th style="text-align:right;padding:10px 15px;font-size:0.75rem;color:var(--text-secondary);text-transform:uppercase;">Acesso / Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-list-body"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
+    <script src="scripts/login.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
