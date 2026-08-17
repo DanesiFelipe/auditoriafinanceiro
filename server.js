@@ -191,7 +191,7 @@ async function runSync() {
 
             while (page <= 300) {
                 syncState.phase = `Listando pagina ${page} (desde ${updatedSince.slice(0, 10)})...`;
-                const path = `/api/v2/tickets?workspace_id=${WORKSPACE_ID}&updated_since=${updatedSince}&per_page=100&page=${page}&order_by=updated_at&order_type=asc&include=requester`;
+                const path = `/api/v2/tickets?workspace_id=${WORKSPACE_ID}&updated_since=${updatedSince}&per_page=100&page=${page}&order_by=updated_at&order_type=asc&include=requester,stats`;
                 const data = await apiGet(path);
                 const tickets = data?.tickets || [];
 
@@ -287,6 +287,16 @@ async function runSync() {
                     }
                 });
 
+                let tempoGasto = '0h';
+                if (fullTicket.stats && fullTicket.stats.resolution_time_in_secs) {
+                    const secs = fullTicket.stats.resolution_time_in_secs;
+                    const hrs = Math.floor(secs / 3600);
+                    const mins = Math.floor((secs % 3600) / 60);
+                    if (hrs > 0 && mins > 0) tempoGasto = `${hrs}h ${mins}m`;
+                    else if (hrs > 0) tempoGasto = `${hrs}h`;
+                    else if (mins > 0) tempoGasto = `${mins}m`;
+                }
+
                 result.push({
                     id:               t.id,
                     subject:          t.subject || `Ticket #${t.id}`,
@@ -298,12 +308,13 @@ async function runSync() {
                     requester_name:   t.requester?.name   || '-',
                     empreendimento:   cf(formData, 'empresa_empreendimento', 'empreendimento', 'empresa'),
                     valor,
-                    banco:            cf(formData, 'banco'),
-                    agencia:          cf(formData, 'agencia', 'agencia'),
-                    conta:            cf(formData, 'conta'),
+                    tempo_gasto:      tempoGasto,
+                    banco:            cf(formData, 'banco', 'banco_cod_banco', 'codigo_banco'),
+                    agencia:          cf(formData, 'agencia'),
+                    conta:            cf(formData, 'conta', 'conta_corrente'),
                     tipo_pagamento:   cf(formData, 'tipo_de_pagamento', 'tipo_pagamento', 'tipo'),
                     forma_pagamento:  cf(formData, 'forma_de_pagamento', 'forma_pagamento'),
-                    contrato_medicao: cf(formData, 'contrato_medicao', 'contrato', 'medicao'),
+                    contrato_medicao: cf(formData, 'contrato_medicao', 'contrato', 'medicao', 'n_do_contrato', 'numero_do_contrato'),
                     tem_documento:    allAttachments.length > 0 ? 'Sim' : 'Nao',
                     attachments:      allAttachments,
                     agente:           agentName,

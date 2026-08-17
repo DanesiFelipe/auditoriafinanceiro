@@ -68,6 +68,10 @@
                     <i class="ph ph-microsoft-excel-logo"></i>
                     <span>Exportar Excel</span>
                 </a>
+                <a href="#" class="nav-item" id="btn-export-archived" style="color:var(--trinus-blue);">
+                    <i class="ph ph-archive"></i>
+                    <span>Relatório Arquivados</span>
+                </a>
 
                 <div class="nav-divider"></div>
                 <span class="nav-label">Dados &amp; Adm</span>
@@ -130,6 +134,10 @@
             <!-- Filters -->
             <section class="filters-panel">
                 <div class="filter-group">
+                    <label for="filter-ticket-id">Nº do Ticket</label>
+                    <input type="text" id="filter-ticket-id" placeholder="Ex: 76051">
+                </div>
+                <div class="filter-group">
                     <label for="filter-status">Status</label>
                     <select id="filter-status">
                         <option value="">Todos</option>
@@ -140,9 +148,9 @@
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label for="filter-tipo-pagamento">Tipo Pgto</label>
-                    <select id="filter-tipo-pagamento">
-                        <option value="">Todos</option>
+                    <label for="filter-forma-pagamento">Forma Pgto</label>
+                    <select id="filter-forma-pagamento">
+                        <option value="">Todas</option>
                         <option value="TED">TED</option>
                         <option value="BOLETO">Boleto</option>
                         <option value="PIX">PIX</option>

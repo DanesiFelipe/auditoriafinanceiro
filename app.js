@@ -21,7 +21,8 @@ const recordCount       = document.getElementById('record-count');
 const syncTime          = document.getElementById('sync-time');
 const globalSearch      = document.getElementById('global-search');
 const filterStatus      = document.getElementById('filter-status');
-const filterTipo        = document.getElementById('filter-tipo-pagamento');
+const filterForma       = document.getElementById('filter-forma-pagamento');
+const filterTicketId    = document.getElementById('filter-ticket-id');
 const filterPrioridade  = document.getElementById('filter-prioridade');
 const filterDocumento   = document.getElementById('filter-documento');
 const filterEmpresa     = document.getElementById('filter-empreendimento');
@@ -57,8 +58,9 @@ function initApp() {
 // ─── EVENTOS ─────────────────────────────────────────────────────────────────
 function setupEventListeners() {
     globalSearch.addEventListener('input', applyFilters);
+    if (filterTicketId) filterTicketId.addEventListener('input', applyFilters);
     filterStatus.addEventListener('change', applyFilters);
-    filterTipo.addEventListener('change', applyFilters);
+    filterForma.addEventListener('change', applyFilters);
     filterPrioridade.addEventListener('change', applyFilters);
     filterDocumento.addEventListener('change', applyFilters);
     filterEmpresa.addEventListener('input', applyFilters);
@@ -66,7 +68,8 @@ function setupEventListeners() {
     filterDateEnd.addEventListener('change', applyFilters);
 
     btnClearFilters.addEventListener('click', () => {
-        globalSearch.value = filterStatus.value = filterTipo.value = '';
+        globalSearch.value = filterStatus.value = filterForma.value = '';
+        if (filterTicketId) filterTicketId.value = '';
         filterPrioridade.value = filterDocumento.value = filterEmpresa.value = '';
         filterDateStart.value = filterDateEnd.value = '';
         applyFilters();
@@ -80,6 +83,8 @@ function setupEventListeners() {
     document.getElementById('btn-refresh').addEventListener('click', (e) => { e.preventDefault(); loadData(); });
     document.getElementById('btn-export-csv').addEventListener('click', (e) => { e.preventDefault(); exportToCSV(); });
     document.getElementById('btn-export-excel').addEventListener('click', (e) => { e.preventDefault(); exportToExcel(); });
+    const btnExportArchived = document.getElementById('btn-export-archived');
+    if (btnExportArchived) btnExportArchived.addEventListener('click', (e) => { e.preventDefault(); exportArchivedToExcel(); });
 
     btnCloseModal.addEventListener('click', closeModal);
     modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
@@ -183,7 +188,7 @@ function renderTable(data) {
             <td><div class="truncate" title="${escapeHtml(ticket.requester_name)}">${escapeHtml(ticket.requester_name)}</div></td>
             <td style="white-space:normal;word-break:break-word;min-width:150px;">${escapeHtml(ticket.empreendimento)}</td>
             <td style="font-weight:600;">${formatCurrency(ticket.valor)}</td>
-            <td>0h</td>
+            <td>${ticket.tempo_gasto || '0h'}</td>
             <td>${renderDocBadge(ticket.tem_documento)}</td>
             <td>${formatAttachments(ticket.attachments, true)}</td>
             <td>${escapeHtml(ticket.banco)}</td>
@@ -275,8 +280,9 @@ function normalize(str) {
 
 function applyFilters() {
     const term      = normalize(globalSearch.value);
+    const idVal     = filterTicketId ? filterTicketId.value.trim() : '';
     const statusVal = filterStatus.value;
-    const tipoVal   = filterTipo.value.toLowerCase();
+    const formaVal  = filterForma.value.toLowerCase();
     const priorVal  = filterPrioridade.value;
     const docVal    = filterDocumento.value;
     const empVal    = normalize(filterEmpresa.value);
@@ -285,8 +291,9 @@ function applyFilters() {
     if (dateEnd) dateEnd.setHours(23, 59, 59, 999);
 
     filteredData = ticketsData.filter(t => {
+        if (idVal && String(t.id) !== idVal) return false;
         if (statusVal && String(t.status) !== statusVal) return false;
-        if (tipoVal && (!t.tipo_pagamento || t.tipo_pagamento.toLowerCase() !== tipoVal)) return false;
+        if (formaVal && (!t.forma_pagamento || !t.forma_pagamento.toLowerCase().includes(formaVal))) return false;
         if (priorVal && String(t.priority) !== priorVal) return false;
         if (docVal && t.tem_documento !== docVal) return false;
         if (empVal && !normalize(t.empreendimento).includes(empVal)) return false;
@@ -694,11 +701,39 @@ function exportToExcel() {
         Prioridade: t.priority, Origem: getSourceName(t.source), 'E-mail': t.requester_email,
         Solicitante: t.requester_name, Empresa: t.empreendimento, Valor: t.valor,
         Documento: t.tem_documento, Banco: t.banco, Agência: t.agencia, Conta: t.conta,
-        'Tipo Pgto': t.tipo_pagamento, Contrato: t.contrato_medicao, Agente: t.agente
+        'Forma Pgto': t.forma_pagamento, Contrato: t.contrato_medicao, Agente: t.agente,
+        'Tempo Gasto': t.tempo_gasto || '0h'
     })));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Auditoria');
     XLSX.writeFile(wb, 'auditoria_v2.xlsx');
+}
+
+function exportArchivedToExcel() {
+    // Filtrar apenas Fechados (5) ou Resolvidos (4) entre 01/01/2025 e 01/04/2026
+    const start = new Date('2025-01-01T00:00:00');
+    const end = new Date('2026-04-01T23:59:59');
+
+    const archivedData = ticketsData.filter(t => {
+        if (t.status !== 4 && t.status !== 5) return false;
+        const d = new Date(t.created_at);
+        if (d < start || d > end) return false;
+        return true;
+    });
+
+    if (!archivedData.length) return alert('Nenhum ticket arquivado encontrado no período de 01/01/2025 até 01/04/2026.');
+
+    const ws = XLSX.utils.json_to_sheet(archivedData.map(t => ({
+        ID: t.id, 'Criado em': formatDate(t.created_at), Status: getStatusName(t.status),
+        Prioridade: t.priority, Origem: getSourceName(t.source), 'E-mail': t.requester_email,
+        Solicitante: t.requester_name, Empresa: t.empreendimento, Valor: t.valor,
+        Documento: t.tem_documento, Banco: t.banco, Agência: t.agencia, Conta: t.conta,
+        'Forma Pgto': t.forma_pagamento, Contrato: t.contrato_medicao, Agente: t.agente,
+        'Tempo Gasto': t.tempo_gasto || '0h'
+    })));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Arquivados_2025_2026');
+    XLSX.writeFile(wb, 'auditoria_arquivados_2025_2026.xlsx');
 }
 
 function download(filename, mime, content) {
