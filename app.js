@@ -177,7 +177,7 @@ function renderTable(data) {
                 <span class="tk-num" id="num-${ticket.id}" onclick="toggleTicketDesc(${ticket.id})">#${ticket.id}</span>
                 <div class="tk-desc" id="desc-${ticket.id}">
                     ${escapeHtml(ticket.subject)}
-                    <br><a class="tk-link" href="https://trinushelpdesk.freshservice.com/a/tickets/${ticket.id}" target="_blank" rel="noopener noreferrer">Abrir no Freshservice ↗</a>
+                    <br><a class="tk-link" href="https://trinus.freshservice.com/a/tickets/${ticket.id}" target="_blank" rel="noopener noreferrer">Abrir no Freshservice ↗</a>
                 </div>
             </td>
             <td>${formatDate(ticket.created_at)}</td>
