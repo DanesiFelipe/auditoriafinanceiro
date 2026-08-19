@@ -20,7 +20,17 @@ const API_KEY      = (process.env.FRESHSERVICE_API_KEY || '').trim();
 const WORKSPACE_ID = parseInt(process.env.WORKSPACE_ID || '24', 10);
 const PORT         = parseInt(process.env.PORT || '5000', 10);
 const TARGET_IDS   = [476, 477];
-const FETCH_SINCE  = '2025-01-01T00:00:00Z';
+const FETCH_SINCE = (() => {
+    try {
+        const c = require('./data/tickets.json');
+        if (c?.metadata?.lastSync) {
+            const d = new Date(c.metadata.lastSync);
+            d.setDate(d.getDate() - 3); // 3 dias de margem de segurança
+            return d.toISOString();
+        }
+    } catch {}
+    return '2025-01-01T00:00:00Z';
+})();
 
 // Arquivos de dados
 const DATA_DIR    = path.join(__dirname, 'data');
@@ -337,18 +347,23 @@ async function runSync() {
             await sleep(DELAY_BETWEEN_DETAILS);
         }
 
-        // Ordenar e salvar
-        result.sort((a, b) => b.id - a.id);
+        // Mesclar com cache existente
+        const finalMap = new Map();
+        if (cache && cache.tickets) {
+            cache.tickets.forEach(t => finalMap.set(t.id, t));
+        }
+        result.forEach(t => finalMap.set(t.id, t));
+        const finalTickets = Array.from(finalMap.values()).sort((a, b) => b.id - a.id);
 
         cache = {
             metadata: {
                 lastSync:     new Date().toISOString(),
-                totalRecords: result.length,
+                totalRecords: finalTickets.length,
                 workspaceId:  WORKSPACE_ID,
                 targetItems:  TARGET_IDS,
                 agents:       agentsMap
             },
-            tickets: result
+            tickets: finalTickets
         };
 
         saveCache();
