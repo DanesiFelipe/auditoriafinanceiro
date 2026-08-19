@@ -168,11 +168,14 @@ async function runSync() {
         syncState.phase = 'Carregando agentes...';
         const agentsMap = {};
         let agPage = 1;
-        while (agPage <= 5) {
+        while (agPage <= 10) {
             const d = await apiGet(`/api/v2/agents?per_page=100&page=${agPage}`);
             const agents = d?.agents || [];
             if (!agents.length) break;
-            agents.forEach(a => { agentsMap[a.id] = a.name || `#${a.id}`; });
+            agents.forEach(a => {
+                const fullName = [a.first_name, a.last_name].filter(Boolean).join(' ');
+                agentsMap[a.id] = fullName || `#${a.id}`;
+            });
             if (agents.length < 100) break;
             agPage++;
             await sleep(800);
