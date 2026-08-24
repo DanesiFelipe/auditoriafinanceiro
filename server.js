@@ -301,8 +301,8 @@ async function runSync() {
                 });
 
                 let tempoGasto = '0h';
-                if (fullTicket.stats && fullTicket.stats.resolution_time_in_secs) {
-                    const secs = fullTicket.stats.resolution_time_in_secs;
+                if (t.stats && t.stats.resolution_time_in_secs) {
+                    const secs = t.stats.resolution_time_in_secs;
                     const hrs = Math.floor(secs / 3600);
                     const mins = Math.floor((secs % 3600) / 60);
                     if (hrs > 0 && mins > 0) tempoGasto = `${hrs}h ${mins}m`;

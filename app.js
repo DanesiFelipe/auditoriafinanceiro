@@ -280,7 +280,7 @@ function normalize(str) {
 
 function applyFilters() {
     const term      = normalize(globalSearch.value);
-    const idVal     = filterTicketId ? filterTicketId.value.trim() : '';
+    const idVal     = filterTicketId ? filterTicketId.value.trim().replace(/^#/, '') : '';
     const statusVal = filterStatus.value;
     const formaVal  = filterForma.value.toLowerCase();
     const priorVal  = filterPrioridade.value;
