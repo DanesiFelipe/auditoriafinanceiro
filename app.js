@@ -177,7 +177,7 @@ function renderTable(data) {
                 <span class="tk-num" id="num-${ticket.id}" onclick="toggleTicketDesc(${ticket.id})">#${ticket.id}</span>
                 <div class="tk-desc" id="desc-${ticket.id}">
                     ${escapeHtml(ticket.subject)}
-                    <br><a class="tk-link" href="https://trinus.freshservice.com/a/tickets/${ticket.id}" target="_blank" rel="noopener noreferrer">Abrir no Freshservice ↗</a>
+                    <br><a class="tk-link" href="https://trinushelpdesk.freshservice.com/a/tickets/${ticket.id}" target="_blank" rel="noopener noreferrer">Abrir no Freshservice ↗</a>
                 </div>
             </td>
             <td>${formatDate(ticket.created_at)}</td>
@@ -411,7 +411,7 @@ function openModal(id) {
     if (!ticket) return;
 
     modalTitle.textContent = `Ticket #${ticket.id}`;
-    modalTicketLink.href = `https://trinus.freshservice.com/a/tickets/${ticket.id}`;
+    modalTicketLink.href = `https://trinushelpdesk.freshservice.com/a/tickets/${ticket.id}`;
 
     modalDetails.innerHTML = `
         <div class="detail-group"><span class="detail-label">Assunto</span><span class="detail-value" style="font-weight:700;">${escapeHtml(ticket.subject)}</span></div>
