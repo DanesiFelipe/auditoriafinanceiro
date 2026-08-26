@@ -113,6 +113,9 @@ async function run() {
             conversations.forEach(c => {
                 if (c.attachments) c.attachments.forEach(a => allAttachments.push({ name: a.name, url: a.attachment_url || a.url || '#' }));
             });
+            matching.forEach(item => {
+                if (item.attachments) item.attachments.forEach(a => allAttachments.push({ name: a.name, url: a.attachment_url || a.url || '#' }));
+            });
 
             let tempoGasto = '0h';
             if (t.stats && t.stats.resolution_time_in_secs) {
